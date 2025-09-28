@@ -75,6 +75,25 @@ export const csvApi = {
       responseType: "blob",
     });
   },
+
+  // Download error file
+  downloadErrorFile: () => {
+    return api.get("/api/csv/error", {
+      responseType: "blob",
+    });
+  },
+
+  // Delete single row
+  deleteRow: (id: number) => {
+    return api.delete(`/api/csv/data/${id}`);
+  },
+
+  // Delete multiple rows
+  deleteRows: (ids: number[]) => {
+    return api.delete("/api/csv/data", {
+      data: { ids },
+    });
+  },
 };
 
 // Types

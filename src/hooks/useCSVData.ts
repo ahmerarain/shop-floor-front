@@ -12,7 +12,7 @@ export const useCSVData = (page: number = 1, search: string = "") => {
   return useQuery({
     queryKey: queryKeys.csvData(page, search),
     queryFn: async () => {
-      const response = await csvApi.getData(page, 100, search);
+      const response = await csvApi.getData(page, 40, search);
       return response.data as ApiResponse<CSVRow[]>;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -29,20 +29,37 @@ export const useUploadCSV = () => {
     onSuccess: (response) => {
       const data = response.data as UploadResponse;
       if (data.success) {
-        toast.success("File uploaded successfully!", {
-          description: `Valid rows: ${data.validRows}, Invalid rows: ${data.invalidRows}`,
-        });
-
         // Invalidate and refetch data
         queryClient.invalidateQueries({ queryKey: ["csvData"] });
-      } else {
-        toast.error("Upload failed", {
-          description: data.error || "Please check your file and try again.",
-        });
       }
     },
     onError: (error: any) => {
       toast.error("Upload failed", {
+        description: error.response?.data?.error || "Please try again.",
+      });
+    },
+  });
+};
+
+// Hook for downloading error file
+export const useDownloadErrorFile = () => {
+  return useMutation({
+    mutationFn: () => csvApi.downloadErrorFile(),
+    onSuccess: (response) => {
+      console.log("response", response);
+      const blob = new Blob([response.data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `error-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Error file downloaded successfully!");
+    },
+    onError: (error: any) => {
+      toast.error("Failed to download error file", {
         description: error.response?.data?.error || "Please try again.",
       });
     },
@@ -89,6 +106,25 @@ export const useExportData = () => {
     },
     onError: (error: any) => {
       toast.error("Export failed", {
+        description: error.response?.data?.error || "Please try again.",
+      });
+    },
+  });
+};
+
+// Hook for deleting multiple rows
+export const useDeleteRows = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => csvApi.deleteRows(ids),
+    onSuccess: (_, ids) => {
+      toast.success(`${ids.length} row(s) deleted successfully!`);
+      // Invalidate and refetch data
+      queryClient.invalidateQueries({ queryKey: ["csvData"] });
+    },
+    onError: (error: any) => {
+      toast.error("Bulk delete failed", {
         description: error.response?.data?.error || "Please try again.",
       });
     },

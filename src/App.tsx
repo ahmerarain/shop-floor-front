@@ -24,6 +24,14 @@ function App() {
   const data = queryData?.data || [];
   const total = queryData?.total || 0;
 
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    // Reset to page 1 when searching to ensure results are shown from the beginning
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  };
+
   const handleUpdateRow = (id: number, updatedData: Partial<CSVRow>) => {
     updateRowMutation.mutate({ id, data: updatedData });
   };
@@ -35,7 +43,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
-        onSearch={setSearchTerm}
+        onSearch={handleSearch}
         onExport={handleExport}
         totalRows={total}
         isExporting={exportMutation.isPending}
