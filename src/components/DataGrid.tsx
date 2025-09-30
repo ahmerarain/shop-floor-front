@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { CSVRow } from "../services/api";
-import { useDeleteRows } from "../hooks/useCSVData";
+import { useDeleteRows, useDelete } from "../hooks/useCSVData";
+import { validateCSVContent, sanitizeCSVRow } from "../utils/csvSafety";
+import { validateRowData } from "../utils/headerValidation";
 
 interface DataGridProps {
   data: CSVRow[];
@@ -27,6 +29,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
 
   // Delete hooks
   const deleteRowsMutation = useDeleteRows();
+  const deleteRowMutation = useDelete();
 
   const handleEdit = (row: CSVRow) => {
     setEditingRow(row.id);
@@ -34,7 +37,33 @@ export const DataGrid: React.FC<DataGridProps> = ({
   };
 
   const handleSave = (id: number) => {
-    onUpdateRow(id, editData);
+    // Validate required fields before saving
+    const requiredFieldValidation = validateRowData(
+      editData,
+      Object.keys(editData)
+    );
+
+    if (!requiredFieldValidation.isValid) {
+      const missingFields = requiredFieldValidation.missingFields;
+      const emptyFields = requiredFieldValidation.emptyRequiredFields;
+
+      let errorMessage = "Cannot save: ";
+      if (missingFields.length > 0) {
+        errorMessage += `Missing required fields: ${missingFields.join(
+          ", "
+        )}. `;
+      }
+      if (emptyFields.length > 0) {
+        errorMessage += `Empty required fields: ${emptyFields.join(", ")}.`;
+      }
+
+      alert(errorMessage);
+      return;
+    }
+
+    // Sanitize the edit data before sending to server
+    const sanitizedData = sanitizeCSVRow(editData);
+    onUpdateRow(id, sanitizedData);
     setEditingRow(null);
     setEditData({});
   };
@@ -45,6 +74,23 @@ export const DataGrid: React.FC<DataGridProps> = ({
   };
 
   const handleInputChange = (field: keyof CSVRow, value: string | number) => {
+    // For text fields, validate for formula injection
+    if (
+      typeof value === "string" &&
+      field !== "id" &&
+      field !== "created_at" &&
+      field !== "updated_at"
+    ) {
+      const validation = validateCSVContent(value);
+      if (!validation.isSafe) {
+        // Show warning but allow editing (user can decide to keep or change)
+        console.warn(
+          `Security warning for field ${field}:`,
+          validation.warnings
+        );
+      }
+    }
+
     setEditData((prev) => ({
       ...prev,
       [field]: value,
@@ -73,7 +119,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
   // Delete handlers
   const handleDeleteRow = (id: number) => {
     if (window.confirm("Are you sure you want to delete this row?")) {
-      deleteRowsMutation.mutate([id]);
+      deleteRowMutation.mutate(id);
     }
   };
 
@@ -93,6 +139,44 @@ export const DataGrid: React.FC<DataGridProps> = ({
   const isAllSelected = data.length > 0 && selectedRows.size === data.length;
   const isIndeterminate =
     selectedRows.size > 0 && selectedRows.size < data.length;
+
+  // Helper function to safely display values with security indicators
+  const renderSafeValue = (value: string | number | null | undefined) => {
+    if (value === null || value === undefined) {
+      return <span className="text-gray-400">-</span>;
+    }
+
+    const stringValue = String(value);
+    const validation = validateCSVContent(stringValue);
+
+    if (!validation.isSafe) {
+      return (
+        <div className="flex items-center gap-1">
+          <span
+            className="text-orange-600 font-medium"
+            title={`Potentially unsafe content: ${validation.warnings.join(
+              ", "
+            )}`}
+          >
+            {stringValue}
+          </span>
+          <svg
+            className="h-3 w-3 text-orange-500"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+      );
+    }
+
+    return <span>{stringValue}</span>;
+  };
 
   // Clear selections when data changes (e.g., after delete, search, pagination)
   useEffect(() => {
@@ -204,16 +288,16 @@ export const DataGrid: React.FC<DataGridProps> = ({
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Part Mark
+                <div className="flex items-center gap-1">Part Mark</div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Assembly Mark
+                <div className="flex items-center gap-1">Assembly Mark</div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Material
+                <div className="flex items-center gap-1">Material</div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thickness
+                <div className="flex items-center gap-1">Thickness</div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Quantity
@@ -262,9 +346,13 @@ export const DataGrid: React.FC<DataGridProps> = ({
                           handleInputChange("part_mark", e.target.value)
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Required field"
+                        required
                       />
                     ) : (
-                      <span className="font-medium">{row.part_mark}</span>
+                      <span className="font-medium">
+                        {renderSafeValue(row.part_mark)}
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -276,9 +364,11 @@ export const DataGrid: React.FC<DataGridProps> = ({
                           handleInputChange("assembly_mark", e.target.value)
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Required field"
+                        required
                       />
                     ) : (
-                      row.assembly_mark
+                      renderSafeValue(row.assembly_mark)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -290,9 +380,11 @@ export const DataGrid: React.FC<DataGridProps> = ({
                           handleInputChange("material", e.target.value)
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Required field"
+                        required
                       />
                     ) : (
-                      row.material
+                      renderSafeValue(row.material)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -304,9 +396,11 @@ export const DataGrid: React.FC<DataGridProps> = ({
                           handleInputChange("thickness", e.target.value)
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Required field"
+                        required
                       />
                     ) : (
-                      row.thickness
+                      renderSafeValue(row.thickness)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -323,7 +417,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : (
-                      row.quantity
+                      renderSafeValue(row.quantity)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -341,7 +435,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : (
-                      row.length || "-"
+                      renderSafeValue(row.length)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -359,7 +453,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : (
-                      row.width || "-"
+                      renderSafeValue(row.width)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -377,7 +471,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : (
-                      row.height || "-"
+                      renderSafeValue(row.height)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -395,7 +489,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : (
-                      row.weight || "-"
+                      renderSafeValue(row.weight)
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
@@ -409,7 +503,9 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : (
-                      <span className="truncate block">{row.notes || "-"}</span>
+                      <span className="truncate block">
+                        {renderSafeValue(row.notes)}
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -462,10 +558,10 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         </button>
                         <button
                           onClick={() => handleDeleteRow(row.id)}
-                          disabled={deleteRowsMutation.isPending}
+                          disabled={deleteRowMutation.isPending}
                           className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                         >
-                          {deleteRowsMutation.isPending && (
+                          {deleteRowMutation.isPending && (
                             <svg
                               className="animate-spin h-3 w-3"
                               xmlns="http://www.w3.org/2000/svg"
@@ -487,7 +583,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                               ></path>
                             </svg>
                           )}
-                          {deleteRowsMutation.isPending
+                          {deleteRowMutation.isPending
                             ? "Deleting..."
                             : "Delete"}
                         </button>

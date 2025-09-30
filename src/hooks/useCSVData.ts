@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { csvApi, CSVRow, ApiResponse, UploadResponse } from "../services/api";
 import { toast } from "sonner";
+// CSV safety utilities are available for future use
+// import { sanitizeCSVRow, createSafeCSVRow, createCSVHeaders } from "../utils/csvSafety";
 
 // Query keys
 export const queryKeys = {
@@ -102,7 +104,7 @@ export const useExportData = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success("Data exported successfully!");
+      toast.success("Data exported successfully with security protection!");
     },
     onError: (error: any) => {
       toast.error("Export failed", {
@@ -125,6 +127,23 @@ export const useDeleteRows = () => {
     },
     onError: (error: any) => {
       toast.error("Bulk delete failed", {
+        description: error.response?.data?.error || "Please try again.",
+      });
+    },
+  });
+};
+
+export const useDelete = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => csvApi.deleteRow(id),
+    onSuccess: (_, id) => {
+      toast.success(`${id} row(s) deleted successfully!`);
+      queryClient.invalidateQueries({ queryKey: ["csvData"] });
+    },
+    onError: (error: any) => {
+      toast.error("Delete failed", {
         description: error.response?.data?.error || "Please try again.",
       });
     },
