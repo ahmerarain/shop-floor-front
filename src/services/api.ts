@@ -83,16 +83,15 @@ export const csvApi = {
     });
   },
 
-  // Delete single row
-  deleteRow: (id: number) => {
-    return api.delete(`/api/csv/data/${id}`);
-  },
-
   // Delete multiple rows
   deleteRows: (ids: number[]) => {
     return api.delete("/api/csv/data", {
       data: { ids },
     });
+  },
+
+  deleteRow: (id: number) => {
+    return api.delete(`/api/csv/${id}`);
   },
 };
 
