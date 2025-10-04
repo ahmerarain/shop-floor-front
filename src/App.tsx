@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CSVUpload } from "./components/CSVUpload";
 import { DataGrid } from "./components/DataGrid";
 import { Header } from "./components/Header";
+import { AuditLog } from "./components/AuditLog";
 import { useCSVData, useUpdateRow, useExportData } from "./hooks/useCSVData";
 import { useDebounce } from "./hooks/useDebounce";
 import { CSVRow } from "./services/api";
@@ -9,6 +10,7 @@ import { CSVRow } from "./services/api";
 function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAuditLog, setShowAuditLog] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   // React Query hooks
@@ -40,11 +42,20 @@ function App() {
     exportMutation.mutate();
   };
 
+  const handleShowAuditLog = () => {
+    setShowAuditLog(true);
+  };
+
+  const handleCloseAuditLog = () => {
+    setShowAuditLog(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         onSearch={handleSearch}
         onExport={handleExport}
+        onShowAuditLog={handleShowAuditLog}
         totalRows={total}
         isExporting={exportMutation.isPending}
         isSearching={isFetching && !isLoading}
@@ -65,6 +76,8 @@ function App() {
           isUpdating={updateRowMutation.isPending}
         />
       </div>
+
+      <AuditLog isOpen={showAuditLog} onClose={handleCloseAuditLog} />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Create axios instance with base configuration
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5008",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5009",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -93,6 +93,51 @@ export const csvApi = {
   deleteRow: (id: number) => {
     return api.delete(`/api/csv/${id}`);
   },
+
+  // Label generation endpoints
+  generateZPLLabel: (id: number) => {
+    return api.get(`/api/labels/${id}/zpl`, {
+      responseType: "blob",
+    });
+  },
+
+  generatePDFLabel: (id: number) => {
+    return api.get(`/api/labels/${id}/pdf`, {
+      responseType: "blob",
+    });
+  },
+
+  generateBulkLabels: (ids: number[]) => {
+    return api.post("/api/labels/bulk", { ids });
+  },
+
+  downloadZPLFile: (id: number) => {
+    return api.get(`/api/labels/${id}/download/zpl`, {
+      responseType: "blob",
+    });
+  },
+
+  downloadPDFFile: (id: number) => {
+    return api.get(`/api/labels/${id}/download/pdf`, {
+      responseType: "blob",
+    });
+  },
+
+  // Audit log endpoints
+  getAuditLogs: (
+    page: number = 1,
+    limit: number = 100,
+    action?: string,
+    rowId?: number
+  ) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (action) params.append("action", action);
+    if (rowId) params.append("rowId", rowId.toString());
+    return api.get(`/api/csv/audit?${params}`);
+  },
 };
 
 // Types
@@ -125,4 +170,33 @@ export interface UploadResponse {
   invalidRows: number;
   hasErrorFile: boolean;
   error?: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  timestamp: string;
+  user: string;
+  action: "CREATE" | "UPDATE" | "DELETE" | "BULK_DELETE" | "CLEAR_ALL";
+  row_id?: number;
+  diff?: string;
+  created_at: string;
+}
+
+export interface AuditLogResponse {
+  success: boolean;
+  data: AuditLogEntry[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface BulkLabelResponse {
+  success: boolean;
+  message: string;
+  zplFiles?: string[];
+  pdfFiles?: string[];
+  errors?: string[];
 }

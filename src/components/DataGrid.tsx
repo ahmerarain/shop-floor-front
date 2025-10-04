@@ -3,6 +3,11 @@ import { CSVRow } from "../services/api";
 import { useDeleteRows, useDelete } from "../hooks/useCSVData";
 import { validateCSVContent, sanitizeCSVRow } from "../utils/csvSafety";
 import { validateRowData } from "../utils/headerValidation";
+import {
+  useGenerateZPLLabel,
+  useGeneratePDFLabel,
+  useGenerateBulkLabels,
+} from "../hooks/useLabels";
 
 interface DataGridProps {
   data: CSVRow[];
@@ -30,6 +35,11 @@ export const DataGrid: React.FC<DataGridProps> = ({
   // Delete hooks
   const deleteRowsMutation = useDeleteRows();
   const deleteRowMutation = useDelete();
+
+  // Label generation hooks
+  const generateZPLLabelMutation = useGenerateZPLLabel();
+  const generatePDFLabelMutation = useGeneratePDFLabel();
+  const generateBulkLabelsMutation = useGenerateBulkLabels();
 
   const handleEdit = (row: CSVRow) => {
     setEditingRow(row.id);
@@ -136,6 +146,20 @@ export const DataGrid: React.FC<DataGridProps> = ({
     }
   };
 
+  // Label generation handlers
+  const handleGenerateZPLLabel = (id: number) => {
+    generateZPLLabelMutation.mutate(id);
+  };
+
+  const handleGeneratePDFLabel = (id: number) => {
+    generatePDFLabelMutation.mutate(id);
+  };
+
+  const handleGenerateBulkLabels = () => {
+    if (selectedRows.size === 0) return;
+    generateBulkLabelsMutation.mutate(Array.from(selectedRows));
+  };
+
   const isAllSelected = data.length > 0 && selectedRows.size === data.length;
   const isIndeterminate =
     selectedRows.size > 0 && selectedRows.size < data.length;
@@ -237,6 +261,37 @@ export const DataGrid: React.FC<DataGridProps> = ({
                 {selectedRows.size} row(s) selected
               </span>
               <button
+                onClick={handleGenerateBulkLabels}
+                disabled={generateBulkLabelsMutation.isPending}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                {generateBulkLabelsMutation.isPending && (
+                  <svg
+                    className="animate-spin h-3 w-3"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                )}
+                {generateBulkLabelsMutation.isPending
+                  ? "Generating..."
+                  : "Generate Labels"}
+              </button>
+              <button
                 onClick={handleDeleteSelected}
                 disabled={deleteRowsMutation.isPending}
                 className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
@@ -288,6 +343,9 @@ export const DataGrid: React.FC<DataGridProps> = ({
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center gap-1">id</div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center gap-1">Part Mark</div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -336,6 +394,9 @@ export const DataGrid: React.FC<DataGridProps> = ({
                       }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {row.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {editingRow === row.id ? (
@@ -549,44 +610,106 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRow(row.id)}
-                          disabled={deleteRowMutation.isPending}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                        >
-                          {deleteRowMutation.isPending && (
-                            <svg
-                              className="animate-spin h-3 w-3"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
-                          )}
-                          {deleteRowMutation.isPending
-                            ? "Deleting..."
-                            : "Delete"}
-                        </button>
+                      <div className="flex flex-col space-y-1">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEdit(row)}
+                            className="text-blue-600 hover:text-blue-900 text-xs"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRow(row.id)}
+                            disabled={deleteRowMutation.isPending}
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+                          >
+                            {deleteRowMutation.isPending && (
+                              <svg
+                                className="animate-spin h-3 w-3"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            )}
+                            {deleteRowMutation.isPending
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleGenerateZPLLabel(row.id)}
+                            disabled={generateZPLLabelMutation.isPending}
+                            className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+                          >
+                            {generateZPLLabelMutation.isPending && (
+                              <svg
+                                className="animate-spin h-3 w-3"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            )}
+                            ZPL
+                          </button>
+                          <button
+                            onClick={() => handleGeneratePDFLabel(row.id)}
+                            disabled={generatePDFLabelMutation.isPending}
+                            className="text-purple-600 hover:text-purple-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+                          >
+                            {generatePDFLabelMutation.isPending && (
+                              <svg
+                                className="animate-spin h-3 w-3"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            )}
+                            PDF
+                          </button>
+                        </div>
                       </div>
                     )}
                   </td>
