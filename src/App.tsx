@@ -5,6 +5,12 @@ import { Header } from "./components/Header";
 import { AuditLog } from "./components/AuditLog";
 import { useCSVData, useUpdateRow, useExportData } from "./hooks/useCSVData";
 import { useDebounce } from "./hooks/useDebounce";
+import {
+  useExportInvalidRows,
+  useExportEditedRows,
+  useInvalidRowsCount,
+  useEditedRowsCount,
+} from "./hooks/useExceptionExports";
 import { CSVRow } from "./services/api";
 
 function App() {
@@ -21,6 +27,12 @@ function App() {
   } = useCSVData(currentPage, debouncedSearchTerm);
   const updateRowMutation = useUpdateRow();
   const exportMutation = useExportData();
+
+  // Exception export hooks
+  const exportInvalidRowsMutation = useExportInvalidRows();
+  const exportEditedRowsMutation = useExportEditedRows();
+  const { data: invalidRowsCountData } = useInvalidRowsCount();
+  const { data: editedRowsCountData } = useEditedRowsCount();
 
   // Extract data from query result
   const data = queryData?.data || [];
@@ -50,14 +62,28 @@ function App() {
     setShowAuditLog(false);
   };
 
+  const handleExportInvalidRows = () => {
+    exportInvalidRowsMutation.mutate();
+  };
+
+  const handleExportEditedRows = () => {
+    exportEditedRowsMutation.mutate();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         onSearch={handleSearch}
         onExport={handleExport}
         onShowAuditLog={handleShowAuditLog}
+        onExportInvalidRows={handleExportInvalidRows}
+        onExportEditedRows={handleExportEditedRows}
         totalRows={total}
+        invalidRowsCount={(invalidRowsCountData as any)?.count || 0}
+        editedRowsCount={(editedRowsCountData as any)?.count || 0}
         isExporting={exportMutation.isPending}
+        isExportingInvalid={exportInvalidRowsMutation.isPending}
+        isExportingEdited={exportEditedRowsMutation.isPending}
         isSearching={isFetching && !isLoading}
       />
 

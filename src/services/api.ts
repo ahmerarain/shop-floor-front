@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Create axios instance with base configuration
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5009",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5004",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -138,6 +138,27 @@ export const csvApi = {
     if (rowId) params.append("rowId", rowId.toString());
     return api.get(`/api/csv/audit?${params}`);
   },
+
+  // Exception export endpoints
+  exportInvalidRows: () => {
+    return api.get("/api/csv/exceptions/invalid", {
+      responseType: "blob",
+    });
+  },
+
+  exportEditedRows: () => {
+    return api.get("/api/csv/exceptions/edited", {
+      responseType: "blob",
+    });
+  },
+
+  getInvalidRowsCount: () => {
+    return api.get("/api/csv/exceptions/invalid/count");
+  },
+
+  getEditedRowsCount: () => {
+    return api.get("/api/csv/exceptions/edited/count");
+  },
 };
 
 // Types
@@ -199,4 +220,78 @@ export interface BulkLabelResponse {
   zplFiles?: string[];
   pdfFiles?: string[];
   errors?: string[];
+}
+
+// Exception export types
+export interface ExceptionCountResponse {
+  success: boolean;
+  count: number;
+}
+
+export interface InvalidRowData {
+  row_id: number;
+  source_filename: string;
+  line_no: number;
+  uploaded_at: string;
+  last_validated_at: string;
+  is_valid: boolean;
+  error_codes: string;
+  error_messages: string;
+  // Original data fields
+  part_mark: string;
+  assembly_mark: string;
+  material: string;
+  thickness: string;
+  quantity: number;
+  length?: number;
+  width?: number;
+  height?: number;
+  weight?: number;
+  notes?: string;
+}
+
+export interface EditedRowData {
+  row_id: number;
+  source_filename: string;
+  line_no: number;
+  uploaded_at: string;
+  last_validated_at: string;
+  is_valid: boolean;
+  error_codes: string;
+  error_messages: string;
+  // Edit tracking fields
+  edited_by: string;
+  edited_at: string;
+  fields_changed: string;
+  // Original data fields with before/after values
+  part_mark: string;
+  part_mark_original?: string;
+  part_mark_new?: string;
+  assembly_mark: string;
+  assembly_mark_original?: string;
+  assembly_mark_new?: string;
+  material: string;
+  material_original?: string;
+  material_new?: string;
+  thickness: string;
+  thickness_original?: string;
+  thickness_new?: string;
+  quantity: number;
+  quantity_original?: number;
+  quantity_new?: number;
+  length?: number;
+  length_original?: number;
+  length_new?: number;
+  width?: number;
+  width_original?: number;
+  width_new?: number;
+  height?: number;
+  height_original?: number;
+  height_new?: number;
+  weight?: number;
+  weight_original?: number;
+  weight_new?: number;
+  notes?: string;
+  notes_original?: string;
+  notes_new?: string;
 }

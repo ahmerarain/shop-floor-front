@@ -33,6 +33,8 @@ export const useUploadCSV = () => {
       if (data.success) {
         // Invalidate and refetch data
         queryClient.invalidateQueries({ queryKey: ["csvData"] });
+        queryClient.invalidateQueries({ queryKey: ["invalidRowsCount"] });
+        queryClient.invalidateQueries({ queryKey: ["editedRowsCount"] });
       }
     },
     onError: (error: any) => {
@@ -79,6 +81,9 @@ export const useUpdateRow = () => {
       toast.success("Row updated successfully!");
       // Invalidate and refetch data
       queryClient.invalidateQueries({ queryKey: ["csvData"] });
+      queryClient.invalidateQueries({ queryKey: ["invalidRowsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["editedRowsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["auditLogs"] });
     },
     onError: (error: any) => {
       toast.error("Update failed", {
@@ -124,6 +129,9 @@ export const useDeleteRows = () => {
       toast.success(`${ids.length} row(s) deleted successfully!`);
       // Invalidate and refetch data
       queryClient.invalidateQueries({ queryKey: ["csvData"] });
+      queryClient.invalidateQueries({ queryKey: ["invalidRowsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["editedRowsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["auditLogs"] });
     },
     onError: (error: any) => {
       toast.error("Bulk delete failed", {
@@ -141,6 +149,9 @@ export const useDelete = () => {
     onSuccess: (_, id) => {
       toast.success(`${id} row(s) deleted successfully!`);
       queryClient.invalidateQueries({ queryKey: ["csvData"] });
+      queryClient.invalidateQueries({ queryKey: ["invalidRowsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["editedRowsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["auditLogs"] });
     },
     onError: (error: any) => {
       toast.error("Delete failed", {
