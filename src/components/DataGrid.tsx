@@ -8,6 +8,19 @@ import {
   useGeneratePDFLabel,
   useGenerateBulkLabels,
 } from "../hooks/useLabels";
+import {
+  Loader2,
+  FileText,
+  AlertTriangle,
+  Edit,
+  Trash2,
+  Save,
+  X,
+  Tag,
+  FileImage,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 interface DataGridProps {
   data: CSVRow[];
@@ -184,17 +197,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
           >
             {stringValue}
           </span>
-          <svg
-            className="h-3 w-3 text-orange-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <AlertTriangle className="h-3 w-3 text-orange-500" />
         </div>
       );
     }
@@ -211,7 +214,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
     return (
       <div className="bg-white rounded-lg shadow-sm border p-8">
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
           <span className="ml-3 text-gray-600">Loading data...</span>
         </div>
       </div>
@@ -222,19 +225,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
     return (
       <div className="bg-white rounded-lg shadow-sm border p-8">
         <div className="text-center text-gray-500">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
+          <FileText className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No data</h3>
           <p className="mt-1 text-sm text-gray-500">
             Upload a CSV file to get started.
@@ -265,27 +256,10 @@ export const DataGrid: React.FC<DataGridProps> = ({
                 disabled={generateBulkLabelsMutation.isPending}
                 className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
-                {generateBulkLabelsMutation.isPending && (
-                  <svg
-                    className="animate-spin h-3 w-3"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                {generateBulkLabelsMutation.isPending ? (
+                  <Loader2 className="animate-spin h-3 w-3" />
+                ) : (
+                  <Tag className="h-3 w-3" />
                 )}
                 {generateBulkLabelsMutation.isPending
                   ? "Generating..."
@@ -296,27 +270,10 @@ export const DataGrid: React.FC<DataGridProps> = ({
                 disabled={deleteRowsMutation.isPending}
                 className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
-                {deleteRowsMutation.isPending && (
-                  <svg
-                    className="animate-spin h-3 w-3"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                {deleteRowsMutation.isPending ? (
+                  <Loader2 className="animate-spin h-3 w-3" />
+                ) : (
+                  <Trash2 className="h-3 w-3" />
                 )}
                 {deleteRowsMutation.isPending
                   ? "Deleting..."
@@ -577,35 +534,19 @@ export const DataGrid: React.FC<DataGridProps> = ({
                           disabled={isUpdating}
                           className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                         >
-                          {isUpdating && (
-                            <svg
-                              className="animate-spin h-3 w-3"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
+                          {isUpdating ? (
+                            <Loader2 className="animate-spin h-3 w-3" />
+                          ) : (
+                            <Save className="h-3 w-3" />
                           )}
                           {isUpdating ? "Saving..." : "Save"}
                         </button>
                         <button
                           onClick={handleCancel}
                           disabled={isUpdating}
-                          className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                         >
+                          <X className="h-3 w-3" />
                           Cancel
                         </button>
                       </div>
@@ -614,8 +555,9 @@ export const DataGrid: React.FC<DataGridProps> = ({
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleEdit(row)}
-                            className="text-blue-600 hover:text-blue-900 text-xs"
+                            className="text-blue-600 hover:text-blue-900 text-xs flex items-center gap-1"
                           >
+                            <Edit className="h-3 w-3" />
                             Edit
                           </button>
                           <button
@@ -623,27 +565,10 @@ export const DataGrid: React.FC<DataGridProps> = ({
                             disabled={deleteRowMutation.isPending}
                             className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
                           >
-                            {deleteRowMutation.isPending && (
-                              <svg
-                                className="animate-spin h-3 w-3"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                              </svg>
+                            {deleteRowMutation.isPending ? (
+                              <Loader2 className="animate-spin h-3 w-3" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
                             )}
                             {deleteRowMutation.isPending
                               ? "Deleting..."
@@ -656,27 +581,10 @@ export const DataGrid: React.FC<DataGridProps> = ({
                             disabled={generateZPLLabelMutation.isPending}
                             className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
                           >
-                            {generateZPLLabelMutation.isPending && (
-                              <svg
-                                className="animate-spin h-3 w-3"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                              </svg>
+                            {generateZPLLabelMutation.isPending ? (
+                              <Loader2 className="animate-spin h-3 w-3" />
+                            ) : (
+                              <Tag className="h-3 w-3" />
                             )}
                             ZPL
                           </button>
@@ -685,27 +593,10 @@ export const DataGrid: React.FC<DataGridProps> = ({
                             disabled={generatePDFLabelMutation.isPending}
                             className="text-purple-600 hover:text-purple-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
                           >
-                            {generatePDFLabelMutation.isPending && (
-                              <svg
-                                className="animate-spin h-3 w-3"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                              </svg>
+                            {generatePDFLabelMutation.isPending ? (
+                              <Loader2 className="animate-spin h-3 w-3" />
+                            ) : (
+                              <FileImage className="h-3 w-3" />
                             )}
                             PDF
                           </button>
@@ -751,6 +642,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                   disabled={currentPage === 1}
                   className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
                 </button>
                 <button
@@ -759,6 +651,7 @@ export const DataGrid: React.FC<DataGridProps> = ({
                   className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
               </nav>
             </div>

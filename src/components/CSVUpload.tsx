@@ -9,6 +9,14 @@ import {
   validateCSVDataRows,
   createEmptyValuesMessage,
 } from "../utils/headerValidation";
+import {
+  Upload,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Download,
+  AlertTriangle,
+} from "lucide-react";
 
 // CSV Safety Constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
@@ -188,41 +196,47 @@ export const CSVUpload: React.FC = () => {
       </h2>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
+        {/* Upload Area */}
+        <div className="relative">
           <input
             ref={fileInputRef}
             type="file"
             accept=".csv"
             onChange={handleFileUpload}
-            disabled={uploadMutation.isPending}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+            disabled={uploadMutation.isPending || isValidatingHeaders}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+            id="csv-upload"
           />
-
-          {(uploadMutation.isPending || isValidatingHeaders) && (
-            <div className="flex items-center text-blue-600">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              {isValidatingHeaders ? "Validating file..." : "Processing..."}
+          <label
+            htmlFor="csv-upload"
+            className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+              uploadMutation.isPending || isValidatingHeaders
+                ? "border-gray-300 bg-gray-50 cursor-not-allowed"
+                : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+            }`}
+          >
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              {uploadMutation.isPending || isValidatingHeaders ? (
+                <Loader2 className="w-8 h-8 mb-4 text-blue-600 animate-spin" />
+              ) : (
+                <Upload className="w-8 h-8 mb-4 text-gray-400" />
+              )}
+              <p className="mb-2 text-sm text-gray-500">
+                <span className="font-semibold">
+                  {isValidatingHeaders
+                    ? "Validating file..."
+                    : uploadMutation.isPending
+                    ? "Processing..."
+                    : "Click to upload CSV file"}
+                </span>
+              </p>
+              <p className="text-xs text-gray-500">
+                {uploadMutation.isPending || isValidatingHeaders
+                  ? "Please wait..."
+                  : "or drag and drop"}
+              </p>
             </div>
-          )}
+          </label>
         </div>
 
         {uploadResult && (
@@ -236,29 +250,9 @@ export const CSVUpload: React.FC = () => {
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 {uploadResult.success ? (
-                  <svg
-                    className="h-5 w-5 text-green-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <CheckCircle className="h-5 w-5 text-green-400" />
                 ) : (
-                  <svg
-                    className="h-5 w-5 text-red-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <XCircle className="h-5 w-5 text-red-400" />
                 )}
               </div>
               <div className="ml-3">
@@ -282,27 +276,10 @@ export const CSVUpload: React.FC = () => {
                       disabled={downloadErrorMutation.isPending}
                       className="mt-2 text-sm text-blue-600 hover:text-blue-500 underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
-                      {downloadErrorMutation.isPending && (
-                        <svg
-                          className="animate-spin h-3 w-3"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
+                      {downloadErrorMutation.isPending ? (
+                        <Loader2 className="animate-spin h-3 w-3" />
+                      ) : (
+                        <Download className="h-3 w-3" />
                       )}
                       {downloadErrorMutation.isPending
                         ? "Downloading..."
@@ -318,17 +295,7 @@ export const CSVUpload: React.FC = () => {
         {headerValidationError && (
           <div className="p-4 rounded-lg bg-red-50 border border-red-200">
             <div className="flex items-start">
-              <svg
-                className="h-5 w-5 text-red-400 mt-0.5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 mr-2" />
               <div>
                 <h3 className="text-sm font-medium text-red-800">
                   File Validation Failed
