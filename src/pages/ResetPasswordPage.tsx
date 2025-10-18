@@ -57,23 +57,26 @@ export const ResetPasswordPage: React.FC = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full">
+          {/* Success State Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 mb-6">
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Password Reset Successful
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Password Reset Successful!
+            </h1>
+            <p className="text-gray-600 mb-8">
               Your password has been successfully reset. You can now log in with
               your new password.
             </p>
-            <div className="mt-6">
+
+            <div className="space-y-3">
               <Link
                 to="/login"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 transform hover:scale-[1.02]"
               >
                 Go to Login
               </Link>
@@ -85,45 +88,62 @@ export const ResetPasswordPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
+            <svg
+              className="h-8 w-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Reset your password
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your new password below
+          </h1>
+          <p className="text-gray-600">
+            Enter your new password below. Make sure it's secure and memorable.
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <PasswordInput
-              value={password}
-              onChange={setPassword}
-              placeholder="Enter new password"
-              label="New Password"
-              id="password"
-              name="password"
-              required
-              showValidation={true}
-              showStrengthIndicator={true}
-            />
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <PasswordInput
+                value={password}
+                onChange={setPassword}
+                placeholder="Enter new password"
+                label="New Password"
+                id="password"
+                name="password"
+                required
+                showValidation={true}
+                showStrengthIndicator={true}
+              />
 
-            <PasswordMatchInput
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              password={password}
-              placeholder="Confirm new password"
-              label="Confirm New Password"
-              id="confirmPassword"
-              name="confirmPassword"
-              required
-              showMatchIndicator={true}
-            />
-          </div>
+              <PasswordMatchInput
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                password={password}
+                placeholder="Confirm new password"
+                label="Confirm New Password"
+                id="confirmPassword"
+                name="confirmPassword"
+                required
+                showMatchIndicator={true}
+              />
+            </div>
 
-          <div>
             <button
               type="submit"
               disabled={
@@ -133,7 +153,7 @@ export const ResetPasswordPage: React.FC = () => {
                 !validatePassword(password).isValid ||
                 password !== confirmPassword
               }
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
             >
               {resetPasswordMutation.isPending ? (
                 <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
@@ -142,17 +162,24 @@ export const ResetPasswordPage: React.FC = () => {
                 ? "Resetting..."
                 : "Reset Password"}
             </button>
-          </div>
 
-          <div className="text-center">
-            <Link
-              to="/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              ← Back to login
-            </Link>
-          </div>
-        </form>
+            <div className="text-center">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
+              >
+                ← Back to login
+              </Link>
+            </div>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">
+            Your new password will be encrypted and stored securely
+          </p>
+        </div>
       </div>
     </div>
   );
