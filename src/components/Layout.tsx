@@ -24,12 +24,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       href: "/audit",
       icon: FileText,
     },
-    {
+  ];
+  if (user?.role === "admin") {
+    navigation.push({
       name: "Users",
       href: "/users",
       icon: Users,
-    },
-  ];
+    });
+  }
 
   const isCurrentPath = (path: string) => {
     return location.pathname === path;

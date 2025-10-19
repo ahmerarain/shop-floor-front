@@ -7,6 +7,7 @@ export interface User {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  role: "admin" | "user";
 }
 
 export interface LoginRequest {

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "sonner";
 /// <reference types="vite/client" />
 
 // Create axios instance with base configuration
@@ -29,8 +30,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error("Error:", error?.response?.data?.error);
     // Handle common errors
     if (error.response?.status === 401) {
+      toast.error(error?.response?.data?.error);
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
       // Handle unauthorized access
       console.error("Unauthorized access");
     } else if (error.response?.status >= 500) {
